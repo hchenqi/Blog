@@ -1,2 +1,1 @@
-# Blog
-Chenqi's GitHub Blogs
+# Chenqi's GitHub Blogs
