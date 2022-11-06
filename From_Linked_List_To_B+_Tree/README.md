@@ -1,92 +1,91 @@
 # From Linked List To B+ Tree
 
-In this article, I'm going to show how B+ tree can be easily constructed from the simple data structures: linked list and array.
+In this article, I'd like to show how B+ tree can be easily constructed from the simple data structures: linked list and array.
+
+I will use a randomly generated integer number sequence as the example data: `27 45 35 73 47 74 99 13 51 6 36 34 58 39 61 53`.
 
 ## Linked List
 
-A list node is the basic element of the linked list. In addition to the data payload, each node also stores a reference, or a *link* to the next node, and a link to the previous node if it is a doubly linked list.
-
-The reference is resolved by the runtime environment, or the memory management system, to actually get the node data that is referenced. Each node that is managed by the memory has a unique address for referencing. The address/reference/link is usually an intergal number with a maximum size.
-
-Let's put the memory management system aside and simply use an arrow pointing to the next node to represent the link. Assume the payload is a character from 'a' to 'z'. A linked list may be shown as below:
+Below is a linked list of integers, and its elements are already in ascending order.
 
 ![](linked-list.png)
 
-### Ordered Linked List
+When we want to insert an integer in this ordered linked list, we have to go through each node until we find the last element that is smaller than the integer, and we insert right after it.
 
-If the data payload is comparable, the linked list can be sorted so that the elements are in order:
-
-![](linked-list-ordered.png)
-
-Now we only focus on a singly linked list of characters in ascending order.
-
-### Finding an element
-
-To find the character 'h', we need to go through the list from head to tail until we find a node that contains 'h'.
-
-### Inserting an element
-
-To insert a character 't', we need to go through the list to find the last node that is smaller than 't', which is 'p', than update its link to point to 't' and let 't' point to its former next node 'v'.
-
-![](linked-list-insertion.png)
-
-### Deleting an element
-
-After finding the element, we update the previous node's next link to the element's next link. Then the element is removed from the linked list.
-
-The finding, insertion or deletion all take up O(n) time complexity denpending on the length n of the list.
+![](linked-list-insertion.gif)
 
 ## Array
 
-An array stores several data members continously and allows random access. In fact, a list node is an array that stores data as well as link to other nodes. But in this section we only talk about the array that stores data elements of the same type.
+As for an ordered array, this insertion process can be quite similar. The only difference is, when we find the right position to insert the integer, we should first shift the elements larger than it by one slot, and then put the integer in the now empty slot. Note that an array always has a limited number of slots, in this example, 5.
 
-### Fixed Size Array
-
-An array always has a fixed size, which is the maximum number of elements it can store. An array with no element is empty, and when all slots of an array are occupied with elements, it becomes full.
-
-### Ordered Array
-
-Similar to the linked list, if elements are comparable, the array can be sorted so that the elements are in order.
- 
-### Finding an element
-
-Like that of linked list, to find an element in the array, we can go through the array from head to tail until we find an element that equals the element we want to find. This takes O(n) time.
-
-Because array supports random access, we can use binary search to find an element more quickly. This will only take O(log(n)) time.
-
-### Inserting an element
-
-
-### Deleting an element
+![](array-insertion.gif)
 
 ## Linked List Of Arrays
 
-Now let's combine the ordered linked list and the ordered fixed size array together. We store an array in each list node, and get a list of arrays. Once you have understood this data structure, the B+ tree will no longer be as complex as it seemed to be.
+Now let's combine the linked list and the array to get a *linked list of arrays*. And let's limit the slot number of each array to 3.
 
-### Finding an element
+When we insert an integer in this data structure, we first go through each list node, now a 3-slot array, and compare its first element with this integer, until we find the last array whose first element is smaller than the integer, and we will insert the integer in this array.
 
-We still need to iterator over the entire list until the target element is found. But for each node, we only need to compare the first element of the array.
+![](linked-list-of-arrays-insertion-1.gif)
 
-### Inserting an element
+When the array to insert is full, we split the array in half after finding the correct position to insert the integer.
 
-When the array is full, we can not 
+![](linked-list-of-arrays-insertion-2.gif)
 
-### Deleting an element
+Here are some more examples:
+
+![](linked-list-of-arrays-insertion-3.gif)
+
+![](linked-list-of-arrays-insertion-4.gif)
+
+![](linked-list-of-arrays-insertion-5.gif)
+
+![](linked-list-of-arrays-insertion-6.gif)
 
 ## B+ Tree
 
-### Finding an element
+By only selecting the first element of each array, we can construct another layer of linked list of arrays. There we get the B+ tree.
 
-### Inserting an element
+![](linked-list-of-arrays-1.png)
 
-### Deleting an element
+![](b+-tree-1.png)
 
-## Reflections
+With the B+ tree constructed, we can now make use of it to speed up the insertion process. We first go through the root array to find the last element smaller than the integer, then we follow the link from this element down to the next level, and continue the comparison process the same way, until we find the target position at the bottom layer.
 
-Althrough the B+ tree I constructed in this article is not strictly equivalent to the standard B+ Tree, as there are extra links between the intermidiate nodes, it is more easily to understand while preserving the basic functionality. In fact, once the tree structure is constructed, all links between the nodes of the same level can be safely removed because the next node can now be referenced through the node of a higher level. The base level nodes only need to store the actual data records, while the intermiate nodes stores an array of index field paired with the reference to the lower level nodes.
+![](b+-tree-1-insertion.gif)
 
-When nodes split or merge can also be adjusted. Currently each node of the B+ tree contains
+We also need to update the upper layer when array splits at the bottom layer. This is as simple as inserting the first element of the split-out array in the upper layer.
 
-Linked list and fixed size array are the most fundamental data structures. There are no unlimited storage systems. The physical memory and the disks are always partitioned by *pages*, usually of 4KB size, and an internet package might even be smaller. Data exceeding this size limit can only be stored across multiple pages linked with references. Thus all data structures are constructed. Of course each link or reference also takes up a fixed size, so only a limited size of pages can be eventually managed. Althrough this would be a large number, it is still not infinite.
+![](b+-tree-1-insertion-1.png)
 
-The *Linked List Of Arrays* data structure can also be useful in some occasions, like dynamically loading a long list of records, or paragraphs. You don't want to load the entire table or article because only a limited size of records or paragraphs can be shown on the screen at the same time. You may only need to go through the paragraphs from head to tail and not from the middle, and make certain modifications on the paragraphs that you are currently reviewing. Of course you can simply use a linked list, but it's not the best way as each list node only occupies several bytes of an entire disk page. You want to make full use of a disk page, so you store a fixed-size array inside a single list node which occupies an entire page.
+![](b+-tree-1-insertion-2.png)
+
+Let's take a look at another example:
+
+![](linked-list-of-arrays-2.png)
+
+![](b+-tree-2.png)
+
+![](b+-tree-2-insertion-1.png)
+
+![](b+-tree-2-insertion-2.png)
+
+![](b+-tree-2-insertion-3.png)
+
+![](b+-tree-2-insertion-4.png)
+
+This time, when an integer is inserted in the bottom layer, the array in the upper layer also splits, which causes another layer to be created as the new root layer.
+
+This is how the final B+ tree with all the integers inserted looks like:
+
+![](b+-tree-final.png)
+
+The element deletion operation won't be more difficult than insertion. It may just need a merge of the adjacent arrays or, at worst, the de-allocation of the root layer. I believe there's no need to elaborate.
+
+## Afterword
+
+Compared with the standard B+ tree, the tree I constructed is slightly different as there are extra links between the internal nodes. In fact, once the tree is constructed, all links between the nodes of the same level can be safely removed, because the next node can now be referenced through the node of a higher level. The leaf nodes only need to store the data indexes, while the internal nodes store an array of indexes paired with links to the nodes of the next level.
+
+![](b+-tree-final-simplified.png)
+
+Links and arrays are the most fundamental structures upon which every data structure is built. Although the *linked list of arrays* is only an intermediate data structure for constructing the B+ tree, it can serve its own purposes. In fact, that's how I discovered this way of understanding the B+ tree. Initially I wanted to find a data structure to support editing long articles without having to load the entire file. So quite straightforwardly I came up with this data structure like a chain of fixed-sized pages to dynamically load a portion of the article that would be displayed on the screen, while retaining the ability to edit at any location without having to shift everything after the edit point.
