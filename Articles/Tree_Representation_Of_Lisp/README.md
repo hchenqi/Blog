@@ -85,3 +85,21 @@ define
 					n
 					2
 ```
+
+Or, even more aggressively, one can write a program in json or other formats:
+
+```json
+{
+	"name": "fibonacci",
+	"parameters": [
+		"n"
+	],
+	"body": [
+		...
+	]
+}
+```
+
+But this feels a bit over-complicating in syntax and I couldn't complete it anymore.
+
+I talked with ChatGPT about my ideas. [here](./ChatGPT-Binary%20Languages%20with%20Editors.md)
