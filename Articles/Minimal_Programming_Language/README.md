@@ -1,83 +1,103 @@
 # Minimal Programming Language
 
-## type
+## data type
 
-### type construction
+### construction
 
 - constant {}
 - union <A, B, ...>
 - tuple {A, B, ...}
+  - array A[...]
 
 note:
-- tuple doesn't contain constants, or it's meaningless, so in tuple {A, B, ...}, A, B, ... must be union types
+- the constructing types A, B, ... in a union or a tuple can be repeated
+- a union or a tuple with only one constructing type is the same as the constructing type
+- array is a rewriting of tuple with a fixed number of copies of a certain type
 
 ```
 {}
 <{}, {}>
 {<{}, {}>, <{}, {}>}
-```
-
-### array
-
-- array A[...]
-
-note:
-- array is a tuple with a fixed number of copies of a certain union type
-
-```
 <{}, {}>[32]
 ```
 
-### type alias
+### storage size
 
-- a name can be bound to a type definition or another name
+- constant types have size of 0
+- union types have ceil(log2(n)) bits for the encoding part, where n is the number of constructing types in the union, plus the size of the current type it holds
+- tuple types have size of sum of the size of its constructing types
+
+### subtyping
+
+- each constructing type is a subtype of a union
+- a combination of subtypes of each constructing type is a subtype of a tuple
 
 ```
-true : {}
+tuple<true, true>
+tuple<bool, true>
+tuple<bool, bool>
+```
+
+### constant subtype
+
+- constant subtype is a subtype and at the same time a constant
+
+### alias
+
+- an alias can be declared as a type construction or another alias, and can be referenced in a type construction
+
+```
 false : {}
-boolean : <true, false>
+true : {}
+boolean : <false, true>
 bool : boolean
 bit : boolean
 int : bit[32]
 ```
 
-### type conversion
+### conversion
 
-- in union <A, B, ...>, A, B, ... are subtypes of the union type
-- tuple can also be regarded as union type, where each combination of the subtypes from each element is also a subtype of the tuple
+- a type can be converted from a subtype or another type of the same construction
+
+### *isomorphism
+
+```
+<{}, {}, {}, {}> ~ {<{}, {}>, <{}, {}>}
+```
+
+## computation
+
+### map
+
+- a map can be declared as a table mapping a union type to another union type, with each constant subtype mapping to a certain constant subtype
+
+```
+not: bool -> bool where
+  true -> false
+  false -> true
+
+and: {bool, bool} -> bool where
+  {false, false} -> false
+  {false, true} -> false
+  {true, false} -> false
+  {true, true} -> true
+
+or: {bool, bool} -> bool where
+  {false, false} -> false
+  {false, true} -> true
+  {true, false} -> true
+  {true, true} -> true
+```
+
+- a map can be applied to a constant subtype of its input type
+
+```
+not true
+and {false, true}
+```
 
 ### variable
 
-- a variable can be declared as a union type in the same way as type alias
-- a variable can be assigned as one of its subtypes
+- 
 
-```
-x : tuple<bool, bool>
-x = tuple<bool, true>
-x = tuple<true, true>
-```
-
-note:
-- : and = should be the same
-- tuple can contain constants here, which is just for type comparision as a partial type
-- it's not necessary to assign a constant to a variable, any subtype is also ok
-- when a variable is assigned a subtype, it's type has changed and can't be reverted
-
-note:
-- variables and types are not distinguished, variables are type aliases, and aliases can be assigned subtypes
-
-## control flow
-
-### function
-
-- a function is an expression with unbound variables, whenever an argument as a subtype is provided, the function eagerly evaluates
-- an expression without unbound variables is eagerly evaluated and reduced to a single value
-
-note:
-- if the argument is not a constant, the function might output a partial type
-
-note:
-- an expression binds values to functions, and the binding is performed by user through editor, and the interpreter examines binding and evaluates eagerly, the evaluation creates a temporary copy of the expression and doesn't change the expression in editor
-
-### branch
-
+### expression
